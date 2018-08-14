@@ -2,6 +2,7 @@ from flask_restful import abort, request
 
 from security.authentication import Authentication
 from exceptions.http_exceptions import HttpAuthenticationException
+from data_access.app_user import AppUserDataAccess
 
 def requires_authentication(func):
     """
@@ -24,3 +25,26 @@ def requires_authentication(func):
         return response
     
     return requires_authentication_func
+
+def requires_role(role_list):
+    """
+    Used to define the roles that are allowed to call a particular route
+    """
+    def requires_role_decorator(func):
+        
+        def requires_role_decorator_func(*args, **kwargs):
+            app_user_id = kwargs.pop('app_user_id')
+            role_array = role_list.split(',')
+            user_roles = AppUserDataAccess().get_roles_by_user_id(app_user_id)
+
+            for user_role in user_roles:
+                try:
+                    role_index = role_array.index(user_role)
+                    if role_index > -1:
+                        return func(*args, **kwargs)
+                except ValueError as ve:
+                    raise HttpAuthenticationException(message='Access denied')
+        
+        return requires_role_decorator_func
+    
+    return requires_role_decorator

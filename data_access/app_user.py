@@ -2,7 +2,7 @@ from sqlalchemy.sql import update, and_
 from data_access.data_access_base import DataAccessBase
 from data_access.application import ApplicationDataAccess
 from data_access.role import RoleDataAccess
-from data_models.models_raw import AppUser, AppUserApplication, AppUserAppRole
+from data_models.models_raw import AppUser, AppUserApplication, AppUserAppRole, AppRole
 from exceptions.http_exceptions import HttpNotFoundException
 
 USERNAME = 'username'
@@ -22,6 +22,17 @@ class AppUserDataAccess(DataAccessBase):
         q = q.filter(AppUser.app_user_id == app_user_id)
 
         return self.get_single_object_or_404(q, AppUser, app_user_id)
+    
+    def get_roles_by_user_id(self, app_user_id):
+        q = (
+            self.default_query(AppRole)
+            .join(AppUserAppRole)
+            .filter(AppUserAppRole.app_user_id == app_user_id)
+        )
+        data = q.all()
+        roles = [item.role_name for item in data]
+
+        return roles
 
     def create_user(self, user_payload, hashed_password):
         username = user_payload.get(USERNAME)
