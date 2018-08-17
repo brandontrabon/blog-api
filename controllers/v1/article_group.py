@@ -5,13 +5,14 @@ from flask_restful_swagger_2 import swagger, Resource
 from data_access.article_group import ArticleGroupDataAccess
 from view_models.article_group import ArticleGroupModel
 from decorators.general import rest_method
-from decorators.security import requires_authentication, requires_role
+from decorators.security import requires_authentication, requires_role, get_claim_data
 
 class ArticleGroupController(Resource):
     @rest_method
     @requires_authentication
     @requires_role('ADMIN,VIEWER')
-    def get(self, article_group_id=None):
+    @get_claim_data('RESTRICTED_ARTICLE_ACCESS')
+    def get(self, article_group_id=None, decorator_data=None):
         #TODO: pass app_user_id to the user role decorator once it is created
         if article_group_id is None:
             article_group_list = ArticleGroupDataAccess().get_all_article_groups()

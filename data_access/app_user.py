@@ -2,9 +2,14 @@ from sqlalchemy.sql import update, and_
 from data_access.data_access_base import DataAccessBase
 from data_access.application import ApplicationDataAccess
 from data_access.role import RoleDataAccess
-from data_models.models_raw import AppUser, AppUserApplication, AppUserAppRole, AppRole
+from data_access.claim import ClaimDataAccess
+from data_models.models_raw import AppUser, AppUserApplication, AppUserAppRole, AppRole, AppClaim, AppUserAppClaim
 from exceptions.http_exceptions import HttpNotFoundException
 
+FIRST_NAME = 'firstname'
+LAST_NAME = 'lastname'
+PHONE_NUMBER = 'phonenumber'
+EMAIL = 'email'
 USERNAME = 'username'
 
 class AppUserDataAccess(DataAccessBase):
@@ -34,21 +39,76 @@ class AppUserDataAccess(DataAccessBase):
 
         return roles
 
+    def get_claim_data_by_user_id(self, app_user_id, claim_name):
+        q = (
+            self.default_query(AppUserAppClaim)
+            .join(AppClaim)
+            .filter(AppUserAppClaim.app_user_id == app_user_id)
+            .filter(AppClaim.claim_name == claim_name)
+        )
+
+        user_claim = self.get_single_object_or_404(q, AppUserAppClaim, app_user_id)
+        return user_claim.claim_value
+
     def create_user(self, user_payload, hashed_password):
+        firstname = user_payload.get(FIRST_NAME)
+        lastname = user_payload.get(LAST_NAME)
+        phonenumber = user_payload.get(PHONE_NUMBER)
+        email = user_payload.get(EMAIL)
         username = user_payload.get(USERNAME)
         is_restricted = False
 
-        # add the application/user association
+        application = ApplicationDataAccess().get_application_by_name('Melinda\'s Blog')
+        role = RoleDataAccess().get_role_by_name('VIEWER')
+        claim = ClaimDataAccess().get_claim_by_name('RESTRICTED_ARTICLE_ACCESS')
 
-        # assign roles and claims
+        user = AppUser(
+            firstname = firstname,
+            lastname = lastname,
+            phonenumber = phonenumber,
+            email = email,
+            username = username,
+            password_hash = hashed_password,
+            is_restricted = is_restricted
+        )
+
+        appUserApplication = AppUserApplication(
+            app_user = user,
+            application = application
+        )
+
+        appUserAppRole = AppUserAppRole(
+            app_user = user,
+            app_role = role
+        )
+
+        appUserAppClaim = AppUserAppClaim(
+            app_user = user,
+            app_claim = claim
+        )
+
+        self.session.add(appUserApplication)
+        self.session.add(appUserAppRole)
+        self.session.add(appUserAppClaim)
+        self.session_commit_with_rollback()
+        return user
     
     def create_admin_user(self, user_payload, hashed_password):
+        firstname = user_payload.get(FIRST_NAME)
+        lastname = user_payload.get(LAST_NAME)
+        phonenumber = user_payload.get(PHONE_NUMBER)
+        email = user_payload.get(EMAIL)
         username = user_payload.get(USERNAME)
 
-        application = ApplicationDataAccess().get_application_by_name('Melindas Blog')
+        application = ApplicationDataAccess().get_application_by_name('Melinda\'s Blog')
         role = RoleDataAccess().get_role_by_name('ADMIN')
+        claim = ClaimDataAccess().get_claim_by_name('RESTRICTED_ARTICLE_ACCESS')
 
         user = AppUser (
+            firstname = firstname,
+            lastname = lastname,
+            phonenumber = phonenumber,
+            email = email,
             username = username,
             password_hash = hashed_password,
             is_restricted = False
@@ -64,7 +124,13 @@ class AppUserDataAccess(DataAccessBase):
             app_role = role
         )
 
+        appUserAppClaim = AppUserAppClaim(
+            app_user = user,
+            app_claim = claim
+        )
+
         self.session.add(appUserApplication)
         self.session.add(appUserAppRole)
+        self.session.add(appUserAppClaim)
         self.session_commit_with_rollback()
         return user

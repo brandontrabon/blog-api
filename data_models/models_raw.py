@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text, text
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -26,7 +26,11 @@ class AppUser(Base):
     __tablename__ = 'app_user'
 
     app_user_id = Column(Integer, primary_key=True, server_default=text("nextval('app_user_id_seq'::regclass)"))
-    username = Column(String(50), nullable=False, unique=True)
+    firstname = Column(String(50), nullable=False)
+    lastname = Column(String(50), nullable=False)
+    phonenumber = Column(String(20))
+    email = Column(String(100), nullable=False, unique=True)
+    username = Column(String(100), nullable=False, unique=True)
     password_hash = Column(String(200), nullable=False)
     is_restricted = Column(Boolean, nullable=False)
     created_date = Column(DateTime(True), nullable=False, server_default=text("now()"))
@@ -38,6 +42,7 @@ class AppUserAppClaim(Base):
 
     app_user_id = Column(ForeignKey('app_user.app_user_id'), primary_key=True, nullable=False)
     app_claim_id = Column(ForeignKey('app_claim.app_claim_id'), primary_key=True, nullable=False)
+    claim_value = Column(String)
     created_date = Column(DateTime(True), nullable=False, server_default=text("now()"))
 
     app_claim = relationship('AppClaim')
@@ -85,6 +90,7 @@ class Article(Base):
     promoted_start_date = Column(DateTime(True))
     promoted_end_date = Column(DateTime(True))
     comments_enabled = Column(Boolean, nullable=False, server_default=text("false"))
+    price = Column(Numeric)
     created_date = Column(DateTime(True), nullable=False, server_default=text("now()"))
     updated_date = Column(DateTime(True), nullable=False, server_default=text("now()"))
     is_deleted = Column(Boolean, nullable=False, server_default=text("false"))
