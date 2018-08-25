@@ -1,6 +1,6 @@
 from sqlalchemy.sql import update, and_
 from data_access.data_access_base import DataAccessBase
-from data_models.models_raw import ArticleGroup
+from data_models.models_raw import ArticleGroup, Article
 from exceptions.http_exceptions import HttpNotFoundException
 
 class ArticleGroupDataAccess(DataAccessBase):
@@ -22,6 +22,16 @@ class ArticleGroupDataAccess(DataAccessBase):
             raise HttpNotFoundException(message='Article group does not exist')
 
         return result
+    
+    def get_articles_by_article_group(self, article_group_id):
+        q = (
+            self.default_query(Article)
+            .join(ArticleGroup)
+            .filter(ArticleGroup.article_group_id == article_group_id)
+        )
+
+        data = q.all()
+        return data
 
     def edit_article_group(self, article_group_id, article_group_payload):
         article_group = self.get_article_group(article_group_id)

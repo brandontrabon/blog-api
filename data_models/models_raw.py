@@ -35,6 +35,7 @@ class AppUser(Base):
     is_restricted = Column(Boolean, nullable=False)
     created_date = Column(DateTime(True), nullable=False, server_default=text("now()"))
     updated_date = Column(DateTime(True), nullable=False, server_default=text("now()"))
+    is_deleted = Column(Boolean, nullable=False, server_default=text("false"))
 
 
 class AppUserAppClaim(Base):

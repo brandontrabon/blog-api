@@ -11,6 +11,7 @@ LAST_NAME = 'lastname'
 PHONE_NUMBER = 'phonenumber'
 EMAIL = 'email'
 USERNAME = 'username'
+IS_RESTRICTED = 'is_restricted'
 
 class AppUserDataAccess(DataAccessBase):
     def __init__(self):
@@ -87,6 +88,7 @@ class AppUserDataAccess(DataAccessBase):
             app_claim = claim
         )
 
+        self.session.add(user)
         self.session.add(appUserApplication)
         self.session.add(appUserAppRole)
         self.session.add(appUserAppClaim)
@@ -129,8 +131,23 @@ class AppUserDataAccess(DataAccessBase):
             app_claim = claim
         )
 
+        self.session.add(user)
         self.session.add(appUserApplication)
         self.session.add(appUserAppRole)
         self.session.add(appUserAppClaim)
         self.session_commit_with_rollback()
         return user
+    
+    def edit_user(self, app_user_id, app_user_payload):
+        self.object_exists_or_404(AppUser.app_user_id == app_user_id, AppUser, app_user_id)
+
+        app_user = self.get_user_by_id(app_user_id)
+        app_user.firstname = app_user_payload.get(FIRST_NAME)
+        app_user.lastname = app_user_payload.get(LAST_NAME)
+        app_user.phonenumber = app_user_payload.get(PHONE_NUMBER)
+        app_user.email = app_user_payload.get(EMAIL)
+        app_user.is_restricted = app_user_payload.get(IS_RESTRICTED)
+
+        self.session.add(app_user)
+        self.session_commit_with_rollback()
+        return app_user

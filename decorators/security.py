@@ -66,6 +66,7 @@ def get_claim_data(claim_name):
             decorator_data = get_key_or_default(kwargs, 'decorator_data', {})
             app_user_id = decorator_data['app_user_id']
             claim_data = AppUserDataAccess().get_claim_data_by_user_id(app_user_id, claim_name)
+            decorator_data['claim_name'] = claim_name
             decorator_data['claim_data'] = claim_data
 
             return func(*args, decorator_data=decorator_data, **kwargs)
