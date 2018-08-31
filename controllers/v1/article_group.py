@@ -24,9 +24,6 @@ class ArticleGroupController(Resource):
     @rest_method
     def put(self, article_group_id):
         article_group_data = request.get_json()
-
-        #Add validation here
-
         article_group = ArticleGroupModel(**article_group_data)
         result = ArticleGroupDataAccess().edit_article_group(article_group_id, article_group)
         return ArticleGroupModel._construct(result)

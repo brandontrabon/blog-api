@@ -12,8 +12,12 @@ from decorators.security import requires_authentication, requires_role, get_clai
 class ArticleController(Resource):
     @rest_method
     def get(self, article_id=None):
-        # just a shell
-        return None
+        if article_id is None:
+            article_list = ArticleDataAccess().get_article()
+            return [ArticleModel._construct_for_output(article, article.app_user, article.article_group) for article in article_list]
+        else:
+            article = ArticleDataAccess().get_article(article_id)
+            return ArticleModel._construct_for_output(article, article.app_user, article.article_group)
     
     @rest_method
     def post(self):
@@ -23,3 +27,20 @@ class ArticleController(Resource):
         user = AppUserDataAccess().get_user_by_id(result.app_user_id)
         article_group = ArticleGroupDataAccess().get_article_group(result.article_group_id) if result.article_group_id is not None else None
         return ArticleModel._construct_for_output(result, user, article_group)
+    
+    @rest_method
+    def put(self, article_id):
+        article_data = request.get_json()
+        result = ArticleDataAccess().edit_article(article_id, article_data)
+        user = AppUserDataAccess().get_user_by_id(result.app_user_id)
+        article_group = ArticleGroupDataAccess().get_article_group(result.article_group_id) if result.article_group_id is not None else None
+        return ArticleModel._construct_for_output(result, user, article_group)
+    
+    @rest_method
+    def delete(self, article_id):
+        delete_successful = ArticleDataAccess().delete_article(article_id)
+
+        if delete_successful == True:
+            return '', 204
+        else:
+            return 'Article ID {} not found'.format(article_id), 410

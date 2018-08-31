@@ -9,7 +9,8 @@ class ArticleDataAccess(DataAccessBase):
         super().__init__()
     
     def get_article(self, article_id=None):
-        self.object_exists_or_404(Article.article_id == article_id, Article, article_id)
+        if article_id is not None:
+            self.object_exists_or_404(Article.article_id == article_id, Article, article_id)
 
         q = self.default_query(Article)
 
@@ -18,7 +19,11 @@ class ArticleDataAccess(DataAccessBase):
 
         q = q.filter(Article.is_deleted == False)
 
-        result = q.one_or_none()
+        if article_id is not None:
+            result = q.one_or_none()
+        else:
+            result = q.all()
+        
         if result is None:
             raise HttpNotFoundException(message='Article does not exist')
 
