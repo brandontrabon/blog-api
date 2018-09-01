@@ -12,3 +12,12 @@ class RegistrationController(Resource):
     @rest_method
     def post(self):
         registration_data = request.get_json()
+
+        # get the password and remove it from the object at the same time
+        password = registration_data.pop('password', None)
+        hashed_password = Authentication().hash_password(password)
+        app_user = AppUserModel(**registration_data)
+        result = AppUserDataAccess().create_user(app_user, hashed_password)
+        model = AppUserModel._construct(result)
+        model.pop('password_hash', None)
+        return model
