@@ -24,7 +24,7 @@ class AppUserController(Resource):
         hashed_password = Authentication().hash_password(password)
         app_user = AppUserModel(**app_user_data)
         # Only leave the admin user on when one needs to be created
-        #result = AppUserDataAccess().create_user(app_user, hashed_password)
-        result = AppUserDataAccess().create_admin_user(app_user, hashed_password)
+        result = AppUserDataAccess().create_user(app_user, hashed_password)
+        #result = AppUserDataAccess().create_admin_user(app_user, hashed_password)
         return AppUserModel._construct(result)
     

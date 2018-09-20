@@ -21,9 +21,10 @@ class AuthController(Resource):
         username = user_data.get('username')
         password = user_data.get('password')
         user = AppUserDataAccess().get_user_by_username(username)
+        roles = AppUserDataAccess().get_roles_by_user_id(user.app_user_id)
         auth_obj = Authentication()
         if auth_obj.compare_passwords(password, user.password_hash) == False:
             raise HttpAuthenticationException(message='Invalid Login')
             
         auth_jwt = auth_obj.create_jwt(username, ip_address)
-        return AuthModel._construct(auth_jwt)
+        return AuthModel._construct(auth_jwt, roles)
